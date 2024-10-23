@@ -10,7 +10,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build": "webpack --mode production"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
