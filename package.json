@@ -1,9 +1,11 @@
 {
   "name": "oli-branch",
   "version": "1.0.0",
-  "main": "expo/AppEntry.js",
+  "description": "Oli-Branch mobile app using Expo and React Native.",
+  "main": "server.js", 
   "scripts": {
-    "start": "expo start",
+    "start": "node server.js",    
+    "heroku-postbuild": "npm install && npm run build",  
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
@@ -18,7 +20,8 @@
     "@react-navigation/stack": "^6.4.1",
     "expo": "~51.0.28",
     "expo-status-bar": "~1.12.1",
-    "express": "^4.21.1",
+    "express": "^4.21.1",  
+    "pg": "^8.7.1",  
     "react": "^18.2.0",
     "react-dom": "18.2.0",
     "react-native-elements": "^3.4.3",
@@ -33,7 +36,9 @@
     "react-native-web": "~0.19.10"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "eslint": "^8.14.0",
+    "prettier": "^2.5.1"
   },
   "engines": {
     "node": ">=16.x.x",
