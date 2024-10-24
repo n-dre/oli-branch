@@ -4,7 +4,7 @@ const path = require('path');
 const { Pool } = require('pg'); // PostgreSQL setup
 
 // Access environment variables
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://contact:y5k01zXkkZRKIZaF@cluster0.kwqwu.mongodb.net/oli-branch?retryWrites=true&w=majority';
+const mongoURI = process.env.MONGODB_URI;
 const port = process.env.PORT || 3000;
 
 const app = express();
