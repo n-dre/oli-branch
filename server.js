@@ -14,10 +14,8 @@ app.use(express.json());
 
 // PostgreSQL connection setup (if you still need it)
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in Heroku config vars
-  ssl: {
-    rejectUnauthorized: false
-  }
+  connectionString: process.env.DATABASE_URL,
+  ssl: false  // Disable SSL here
 });
 
 // MongoDB connection setup
