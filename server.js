@@ -58,6 +58,8 @@ runMongoDB().catch(console.dir);
 // Route for registering a new user (PostgreSQL)
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
+  console.log('POST /register hit');
+  res.send('Register endpoint hit');
 
   try {
     const result = await pool.query(
