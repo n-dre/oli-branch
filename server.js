@@ -1,10 +1,11 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const path = require('path');
 const { Pool } = require('pg'); // PostgreSQL setup
 
 // Access environment variables
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://your-default-uri-here';
+const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://contact:y5k01zXkkZRKIZaF@cluster0.kwqwu.mongodb.net/oli-branch?retryWrites=true&w=majority';
 const port = process.env.PORT || 3000;
 
 const app = express();
@@ -26,6 +27,45 @@ MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true 
   console.log('Connected to MongoDB:', mongoURI);
 
   const db = client.db('oli-branch');  // MongoDB database name
+
+  // Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));   
+
+// MongoDB connection
+const client = new MongoClient(mongoURI, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+async function runMongoDB() {
+  try {
+    // Connect the client to the server (optional starting in v4.7)
+    await client.connect();
+    console.log("Connected to MongoDB!");
+
+    // Use the 'oli-branch' database
+    const db = client.db('oli-branch');
+
+    // Example route to fetch users from MongoDB
+    app.get('/users', (req, res) => {
+      db.collection('users').find({}).toArray((err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Error fetching users');
+        }
+        res.json(result);
+      });
+    });
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err);
+  }
+}
+
+// Start the MongoDB connection
+runMongoDB().catch(console.dir);
 
   // Example route to fetch users from MongoDB
   app.get('/users', (req, res) => {
