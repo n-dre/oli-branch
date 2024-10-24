@@ -4,9 +4,14 @@ const path = require('path');
 const { Pool } = require('pg'); // Import PostgreSQL
 
 const mongoURI = process.env.MONGODB_URI;
-
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Middleware for parsing JSON body
+app.use(express.json()); // Corrected to handle JSON from POST requests
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // PostgreSQL connection setup
 const pool = new Pool({
@@ -19,13 +24,17 @@ const pool = new Pool({
 // MongoDB connection
 MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
   if (err) throw err;
+  console.log('MONGODB_URI:', process.env.MONGODB_URI); // For debugging
 
   const db = client.db('oli-branch');  // Replace with your MongoDB database name
 
   // Example route to fetch users from MongoDB
   app.get('/users', (req, res) => {
     db.collection('users').find({}).toArray((err, result) => {
-      if (err) throw err;
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error fetching users');
+      }
       res.json(result);
     });
   });
@@ -46,9 +55,6 @@ app.post('/register', async (req, res) => {
     res.status(500).send('Error registering user');
   }
 });
-
-// Serve static files (if applicable)
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Example API route to test database connection (PostgreSQL)
 app.get('/api/test-db', async (req, res) => {
@@ -85,4 +91,5 @@ app.post('/login', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
 
