@@ -1,21 +1,20 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
 const path = require('path');
-const { Pool } = require('pg'); // Import PostgreSQL
+const { Pool } = require('pg'); // PostgreSQL setup
 
-const mongoURI = process.env.MONGODB_URI;
-const app = express();
+// Access environment variables
+const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://your-default-uri-here';
 const port = process.env.PORT || 3000;
 
-// Middleware for parsing JSON body
-app.use(express.json()); // Corrected to handle JSON from POST requests
+const app = express();
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Middleware to parse JSON bodies
+app.use(express.json());
 
-// PostgreSQL connection setup
+// PostgreSQL connection setup (if you still need it)
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL, // Ensure DATABASE_URL is set in Heroku config vars
   ssl: {
     rejectUnauthorized: false
   }
@@ -24,17 +23,14 @@ const pool = new Pool({
 // MongoDB connection
 MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
   if (err) throw err;
-  console.log('MONGODB_URI:', process.env.MONGODB_URI); // For debugging
+  console.log('Connected to MongoDB:', mongoURI);
 
-  const db = client.db('oli-branch');  // Replace with your MongoDB database name
+  const db = client.db('oli-branch');  // MongoDB database name
 
   // Example route to fetch users from MongoDB
   app.get('/users', (req, res) => {
     db.collection('users').find({}).toArray((err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Error fetching users');
-      }
+      if (err) throw err;
       res.json(result);
     });
   });
@@ -56,19 +52,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Example API route to test database connection (PostgreSQL)
-app.get('/api/test-db', async (req, res) => {
-  try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW()'); // Query to get the current time
-    res.send(result.rows);
-    client.release();
-  } catch (err) {
-    console.error(err);
-    res.send('Error connecting to the database: ' + err);
-  }
-});
-
 // Route for user login (PostgreSQL)
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -87,9 +70,26 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Serve static files (if applicable)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Example API route to test database connection (PostgreSQL)
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    const result = await client.query('SELECT NOW()'); // Query to get the current time
+    res.send(result.rows);
+    client.release();
+  } catch (err) {
+    console.error(err);
+    res.send('Error connecting to the database: ' + err);
+  }
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
 
 
