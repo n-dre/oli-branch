@@ -1,9 +1,14 @@
 import React from 'react';
-import AppNavigator from './app/navigation/AppNavigator';  // Ensure the correct path to AppNavigator
+import AppNavigator from './app/navigation/AppNavigator'; // Ensure the correct path to AppNavigator
+import { AuthProvider } from './hooks/useAuth';
+import { UserPreferencesProvider } from './hooks/useUserPreferences';
 
 export default function App() {
-  // Opening the function and returning the AppNavigator component
   return (
-    <AppNavigator />  // Rendering the navigation container and screens
+    <AuthProvider>
+      <UserPreferencesProvider>
+        <AppNavigator />
+      </UserPreferencesProvider>
+    </AuthProvider>
   );
-}  // Closing the function block correctly
+}

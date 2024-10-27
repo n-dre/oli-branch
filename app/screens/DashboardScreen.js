@@ -4,6 +4,10 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
+import DashboardCustomization from '../components/DashboardCustomization';
+import { useAuth } from '../hooks/useAuth';
+import { useUserPreferences } from '../hooks/useUserPreferences';
+
 const availableScreens = [
   { id: '1', name: 'Financial Health Overview', screen: 'FinancialHealthScreen', icon: require('../assets/Financial-icon.svg') },
   { id: '2', name: 'Banking Product Differentiation', screen: 'BankingProductsScreen', icon: require('../assets/Banking-product.svg') },
@@ -15,6 +19,9 @@ const DashboardScreen = () => {
   const navigation = useNavigation();
   const [dashboardItems, setDashboardItems] = useState([]);
   const [isCustomizing, setIsCustomizing] = useState(false);
+
+  const { user, logout } = useAuth();
+  const { preferences, savePreferences } = useUserPreferences();
 
   useEffect(() => {
     loadDashboard();
@@ -64,6 +71,20 @@ const DashboardScreen = () => {
         <TouchableOpacity style={styles.customizeButton} onPress={toggleCustomization}>
           <Text style={styles.customizeButtonText}>{isCustomizing ? 'Done' : 'Customize'}</Text>
         </TouchableOpacity>
+      </View>
+
+      <View>
+        <Text>Welcome, {user ? user.name : 'Guest'}!</Text>
+          <Button title="Logout" onPress={logout} />
+          <Button
+            title="Toggle Dashboard Preference"
+            onPress={() => savePreferences({ showFinancialHealth: !preferences.showFinancialHealth })}
+      />
+      </View>
+
+      <View>
+        {/* Other dashboard components */}
+        <DashboardCustomization />
       </View>
 
       <DraggableFlatList
@@ -142,4 +163,5 @@ const styles = StyleSheet.create({
 });
 
 export default DashboardScreen;
-
+                                 
+                       

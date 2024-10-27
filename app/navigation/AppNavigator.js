@@ -27,6 +27,7 @@ import SettingsScreen from '../screens/SettingsScreen';  // Import from screens 
 
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';  // Import from screens folder
 import ChangeUserScreen from '../screens/ChangeUserScreen';  // Import from screens folder
+import NearbyProductsScreen from '../screens/NearbyProductsScreen';
 
 const Stack = createStackNavigator();
 
@@ -195,6 +196,13 @@ const AppNavigator = () => {
           name="ChangeUserScreen" 
           component={ChangeUserScreen} 
           options={{ headerShown: false }} // Hide header for a cleaner look
+        />
+
+        {/* NearbyProductsScreen */}
+        <Stack.Screen 
+          name="NearbyProductsScreen" 
+          component={NearbyProductsScreen} 
+          options={{ title: "Nearby Products" }} 
         />
 
     </Stack.Navigator>
