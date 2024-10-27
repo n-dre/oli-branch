@@ -1,62 +1,37 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { CheckBox } from 'react-native-elements';  // Correct import from react-native-elements
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 
 const BusinessInfoScreen = ({ navigation }) => {
-  const [businessName, setBusinessName] = useState('');
   const [ein, setEin] = useState('');
-  const [duns, setDuns] = useState('');
-  const [notApplicable, setNotApplicable] = useState(false);
-  
-  const [einError, setEinError] = useState('');  // State for EIN error message
-  const [dunsError, setDunsError] = useState('');  // State for DUNS error message
+  const [businessData, setBusinessData] = useState(null); // Store business data from API
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  // Function to validate EIN format (XX-XXXXXXX)
-  const validateEIN = (ein) => {
-    const einPattern = /^\d{2}-\d{7}$/;  // Regular expression to match EIN format
-    return einPattern.test(ein);
-  };
-
-  // Function to validate DUNS format (9 digits)
-  const validateDUNS = (duns) => {
-    const dunsPattern = /^\d{9}$/;  // Regular expression to match 9 digits
-    return dunsPattern.test(duns);
-  };
-
-  const handleNext = () => {
-    let valid = true;
-
-    // Reset error messages
-    setEinError('');
-    setDunsError('');
-
-    console.log("Starting validation...");
-
-    // Skip validation if "Not Applicable" is checked
-    if (!notApplicable) {
-      // Validate EIN if not 'Not Applicable'
-      if (!validateEIN(ein)) {
-        console.log("EIN is invalid.");
-        setEinError('Please enter a valid EIN number in the format XX-XXXXXXX.');  // Set EIN error message
-        valid = false;
-      }
-
-      // Validate DUNS number only if provided (optional)
-      if (duns && !validateDUNS(duns)) {
-        console.log("DUNS is invalid.");
-        setDunsError('Please enter a valid DUNS number (9 digits).');  // Set DUNS error message
-        valid = false;
-      }
+  // Function to simulate searching for business info based on EIN
+  const searchBusinessInfo = async () => {
+    if (!ein) {
+      alert("Please enter a valid EIN number.");
+      return;
     }
 
-    if (valid) {
-      const businessData = { ein, duns, notApplicable };
-      console.log('Business data is valid:', businessData);
+    setLoading(true);
+    setModalVisible(true);
+    try {
+      // Simulate an API call to fetch business info based on EIN
+      const response = await fetch(`https://api.example.com/business?ein=${ein}`);
+      const data = await response.json();
 
-      // Navigate to the next screen
-      navigation.navigate('IndustryInfoScreen');  // Navigate to next screen
-    } else {
-      console.log("Validation failed. No navigation.");
+      // Check if business data was found
+      if (response.ok && data && data.businessName) {
+        setBusinessData(data);
+      } else {
+        setBusinessData(null);
+      }
+    } catch (error) {
+      console.error('Error fetching business info:', error);
+      alert('There was an error fetching the business information. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,50 +39,66 @@ const BusinessInfoScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Business Information</Text>
 
+      {/* EIN Input Field */}
+      <Text style={styles.label}>Enter EIN Number:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Business Name"
-        value={businessName}
-        onChangeText={setBusinessName}
-      />
-
-      {/* EIN Number */}
-      <TextInput
-        style={styles.input}
-        placeholder="EIN Number (XX-XXXXXXX)"
         value={ein}
         onChangeText={setEin}
-        editable={!notApplicable}  // Disabled if "Not Applicable" is checked
-        keyboardType="numeric"
+        placeholder="EIN Number"
+        keyboardType="number-pad"
       />
-      {einError ? <Text style={styles.errorText}>{einError}</Text> : null}  {/* EIN Error message */}
 
-      {/* DUNS Number (Optional) */}
-      <TextInput
-        style={styles.input}
-        placeholder="DUNS Number (9 digits) (Optional)"
-        value={duns}
-        onChangeText={setDuns}
-        editable={!notApplicable}  // Disabled if "Not Applicable" is checked
-        keyboardType="numeric"
-      />
-      {dunsError ? <Text style={styles.errorText}>{dunsError}</Text> : null}  {/* DUNS Error message */}
-
-      {/* Not Applicable Checkbox */}
-      <View style={styles.checkboxContainer}>
-        <CheckBox
-          checked={notApplicable}
-          onPress={() => setNotApplicable(!notApplicable)}  // Toggle checkbox state
-          checkedColor="#2E4C9D"  // Customize checkmark color
-          uncheckedColor="#ccc"  // Customize unchecked box color
-          containerStyle={{ padding: 0, margin: 0 }}  // Remove default padding/margin
-        />
-        <Text style={styles.label}>Not Applicable</Text>
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleNext}>
-        <Text style={styles.buttonText}>Next</Text>
+      {/* Search Button */}
+      <TouchableOpacity style={styles.button} onPress={searchBusinessInfo}>
+        <Text style={styles.buttonText}>Search Business</Text>
       </TouchableOpacity>
+
+      {/* Modal to show business info */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+      >
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={styles.modalContainer}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                {loading ? (
+                  <ActivityIndicator size="large" color="#0000ff" />
+                ) : businessData ? (
+                  <>
+                    <Text style={styles.modalTitle}>Business Found:</Text>
+                    <Text style={styles.modalText}>Business Name: {businessData.businessName}</Text>
+                    <Text style={styles.modalText}>Address: {businessData.address}</Text>
+                    <Text style={styles.modalText}>Phone: {businessData.phone}</Text>
+                    
+                    {/* Add other pre-filled business data as needed */}
+
+                    {/* Confirm Button */}
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={styles.buttonText}>Confirm</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.modalTitle}>No Business Found</Text>
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={styles.buttonText}>Close</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -115,15 +106,18 @@ const BusinessInfoScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     padding: 20,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    color: '#2E4C9D',
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 10,
   },
   input: {
     height: 50,
@@ -131,23 +125,14 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  label: {
-    fontSize: 16,
-    marginLeft: 10,
+    marginBottom: 15,
   },
   button: {
-    backgroundColor: '#2E4C9D',  // Blue button background
+    backgroundColor: '#2E4C9D', // Blue button background
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 5,
-    alignSelf: 'flex-end',
+    alignSelf: 'center',
     marginTop: 20,
   },
   buttonText: {
@@ -155,13 +140,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  errorText: {
-    color: 'red',
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 8,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
     marginBottom: 10,
   },
 });
 
 export default BusinessInfoScreen;
+
 
 
 

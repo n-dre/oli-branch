@@ -8,9 +8,11 @@ const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://contact:y5k01zXkkZRKI
 const port = process.env.PORT || 3000;
 
 const app = express();
+const cors = require('cors');
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+app.use(cors());
 
 // PostgreSQL connection setup (if you still need it)
 const pool = new Pool({
@@ -62,9 +64,10 @@ app.post('/register', async (req, res) => {
   res.send('Register endpoint hit');
 
   try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const result = await pool.query(
       'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *',
-      [username, email, password]
+      [username, email, hashedPassword]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -76,12 +79,13 @@ app.post('/register', async (req, res) => {
 // Route for user login (PostgreSQL)
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-
+  
   try {
-    const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const user = result.rows[0];
 
-    if (result.rows.length > 0) {
-      res.status(200).json({ message: 'Login successful', user: result.rows[0] });
+    if (user && await bcrypt.compare(password, user.password)) {
+      res.status(200).json({ message: 'Login successful', user });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
     }
