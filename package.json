@@ -12,7 +12,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write .",
     "build": "echo 'No build step necessary'",
-    "test": "jest"
+    "test": "jest --config jest.config.js" 
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
@@ -49,6 +49,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.26.0",
+    "babel-cli": "^6.26.0",
     "babel-jest": "^29.7.0",
     "dotenv": "^16.4.5",
     "eslint": "^8.14.0",
@@ -60,5 +61,10 @@
     "node": ">=16.x.x",
     "npm": ">=7.x.x"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "moduleDirectories": ["node_modules", "<rootDir>/"],
+    "modulePaths": ["<rootDir>"]
+  }
 }
+

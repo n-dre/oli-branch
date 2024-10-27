@@ -4,13 +4,18 @@ const path = require('path');
 const { Pool } = require('pg'); // PostgreSQL setup
 const router = express.Router();
 
-const authMiddleware = require('./middleware/authMiddleware');
+const authMiddleware = require('../../middleware/authMiddleware');
+console.log('authMiddleware:', authMiddleware); // This should log the contents of the file or an empty object if not found
+
+// ... rest of your code
 const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 
 // Access environment variables
 const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://contact:y5k01zXkkZRKIZaF@cluster0.kwqwu.mongodb.net/oli-branch?retryWrites=true&w=majority';
 const port = process.env.PORT || 3000;
+
+console.log(authMiddleware); // Should print the contents of the file or an empty object if correctly loaded
 
 const app = express();
 const cors = require('cors');
