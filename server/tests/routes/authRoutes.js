@@ -1,0 +1,87 @@
+// authRoutes.js
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { MongoClient } = require('mongodb'); // Or use an SQL client if SQL-based
+const authMiddleware = require('../middleware/authMiddleware');
+const router = express.Router();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+
+// Assuming you’re using MongoDB and have defined a users collection in a database.
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/oli-branch';
+
+// Register route
+router.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const client = await MongoClient.connect(mongoURI, { useUnifiedTopology: true });
+    const db = client.db('oli-branch');
+    const user = await db.collection('users').findOne({ email });
+
+    if (user) {
+      res.status(400).json({ message: 'User already exists' });
+      return;
+    }
+
+    await db.collection('users').insertOne({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    res.status(201).json({ message: 'User registered successfully' });
+    client.close();
+  } catch (error) {
+    res.status(500).json({ message: 'Registration error', error });
+  }
+});
+
+// Login route
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const client = await MongoClient.connect(mongoURI, { useUnifiedTopology: true });
+    const db = client.db('oli-branch');
+    const user = await db.collection('users').findOne({ email });
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      res.status(400).json({ message: 'Invalid credentials' });
+      return;
+    }
+
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, message: 'Login successful' });
+    client.close();
+  } catch (error) {
+    res.status(500).json({ message: 'Login error', error });
+  }
+});
+
+// Protected route example using auth middleware
+router.get('/profile', authMiddleware, async (req, res) => {
+  try {
+    const client = await MongoClient.connect(mongoURI, { useUnifiedTopology: true });
+    const db = client.db('oli-branch');
+    const user = await db.collection('users').findOne({ _id: req.user.userId });
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+    res.json({ user });
+    client.close();
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching profile', error });
+  }
+});
+
+module.exports = router;

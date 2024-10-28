@@ -12,7 +12,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write .",
     "build": "echo 'No build step necessary'",
-    "test": "jest --config jest.config.js" 
+    "test": "jest --config jest.config.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
@@ -22,6 +22,7 @@
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "axios": "^1.7.7",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "expo": "~51.0.28",
@@ -63,8 +64,12 @@
   },
   "private": true,
   "jest": {
-    "moduleDirectories": ["node_modules", "<rootDir>/"],
-    "modulePaths": ["<rootDir>"]
+    "moduleDirectories": [
+      "node_modules",
+      "<rootDir>/"
+    ],
+    "modulePaths": [
+      "<rootDir>"
+    ]
   }
 }
-

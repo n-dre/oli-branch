@@ -4,12 +4,12 @@ const path = require('path');
 const { Pool } = require('pg'); // PostgreSQL setup
 const router = express.Router();
 
-const authMiddleware = require('../../middleware/authMiddleware');
+const authMiddleware = require('./server/middleware/authMiddleware');
 console.log('authMiddleware:', authMiddleware); // This should log the contents of the file or an empty object if not found
 
 // ... rest of your code
-const errorHandler = require('./middleware/errorHandler');
-const requestLogger = require('./middleware/requestLogger');
+const errorHandler = require('./server/middleware/errorHandler');
+const requestLogger = require('./server/middleware/requestLogger');
 
 // Access environment variables
 const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://contact:y5k01zXkkZRKIZaF@cluster0.kwqwu.mongodb.net/oli-branch?retryWrites=true&w=majority';
@@ -71,8 +71,8 @@ runMongoDB().catch(console.dir);
 app.use('/api/protected', authMiddleware); // Only protected routes require auth
 
 // Define routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/auth', require('./server/routes/authRoutes'));
+app.use('/api/products', require('./server/routes/productRoutes'));
 
 // Catch 404 errors for undefined routes
 app.use((req, res, next) => {

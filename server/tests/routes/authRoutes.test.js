@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../../server'); // If server.js is in the project root
+const app = require('../../../server'); // If server.js is in the project root
 
 describe('Auth Routes', () => {
   it('should register a new user', async () => {
