@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../test/middleware/authMiddleware');
 
 describe('authMiddleware', () => {
   it('should call next if token is valid', () => {

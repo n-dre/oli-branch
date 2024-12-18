@@ -1,106 +1,115 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, Text, View, StyleSheet, Dimensions } from 'react-native';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
+// app/screens/FinancialHealthScreen.js
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { LineChart, BarChart } from 'react-native-chart-kit';
+import axios from 'axios';
+import { Dimensions } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
 
 const FinancialHealthScreen = () => {
-  // Sample data for revenue growth
-  const revenueGrowthData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        data: [2000, 4500, 2800, 8000, 9200, 7300],
-        color: (opacity = 1) => `rgba(46, 76, 157, ${opacity})`, // optional: line color
-      },
-    ],
-  };
+  const [financialData, setFinancialData] = useState(null);
+  
+  // Fetching financial health data
+  useEffect(() => {
+    const fetchFinancialData = async () => {
+      try {
+        const response = await axios.get('http://<your-server-url>/api/financial-health');
+        setFinancialData(response.data);
+      } catch (error) {
+        console.error("Error fetching financial data:", error);
+      }
+    };
 
-  // Sample data for expense distribution
-  const expenseData = [
-    { name: 'Salaries', population: 40, color: '#E74C3C', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Rent', population: 20, color: '#F39C12', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Utilities', population: 10, color: '#3498DB', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Marketing', population: 15, color: '#2ECC71', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Misc', population: 15, color: '#9B59B6', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-  ];
+    fetchFinancialData();
+  }, []);
 
-  // Sample data for monthly cash flow
-  const cashFlowData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        data: [500, 1500, 800, 4000, 4500, 2000],
-      },
-    ],
-  };
+  if (!financialData) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading Financial Health Data...</Text>
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <Text style={styles.title}>Financial Health Overview</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Financial Health Overview</Text>
 
-        {/* Revenue Growth Line Chart */}
-        <Text style={styles.chartTitle}>Revenue Growth</Text>
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>Monthly Expenses</Text>
         <LineChart
-          data={revenueGrowthData}
-          width={screenWidth * 0.9}
+          data={{
+            labels: financialData.monthlyExpenses.labels,
+            datasets: [{ data: financialData.monthlyExpenses.data }]
+          }}
+          width={screenWidth - 40}
           height={220}
+          yAxisLabel="$"
           chartConfig={chartConfig}
           bezier
           style={styles.chart}
         />
+      </View>
 
-        {/* Expense Distribution Pie Chart */}
-        <Text style={styles.chartTitle}>Expense Distribution</Text>
-        <PieChart
-          data={expenseData}
-          width={screenWidth * 0.9}
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>Monthly Revenue</Text>
+        <BarChart
+          data={{
+            labels: financialData.monthlyRevenue.labels,
+            datasets: [{ data: financialData.monthlyRevenue.data }]
+          }}
+          width={screenWidth - 40}
           height={220}
+          yAxisLabel="$"
           chartConfig={chartConfig}
           accessor="population"
           backgroundColor="transparent"
           paddingLeft="10"
           style={styles.chart}
         />
+      </View>
 
-        {/* Monthly Cash Flow Bar Chart */}
-        <Text style={styles.chartTitle}>Monthly Cash Flow</Text>
-        <BarChart
-          data={cashFlowData}
-          width={screenWidth * 0.9}
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>Profitability</Text>
+        <LineChart
+          data={{
+            labels: financialData.profitability.labels,
+            datasets: [{ data: financialData.profitability.data }]
+          }}
+          width={screenWidth - 40}
           height={220}
+          yAxisLabel="%"
           chartConfig={chartConfig}
           style={styles.chart}
           fromZero
         />
+      </View>
       </ScrollView>
-    </SafeAreaView>
+
   );
 };
 
 const chartConfig = {
-  backgroundColor: '#ffffff',
-  backgroundGradientFrom: '#ffffff',
-  backgroundGradientTo: '#ffffff',
-  decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(46, 76, 157, ${opacity})`, // Blue color for bars and lines
-  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-  style: {
-    borderRadius: 16,
-  },
-  propsForDots: {
-    r: '6',
-    strokeWidth: '2',
-    stroke: '#2E4C9D',
-  },
+  backgroundGradientFrom: "#1E2923",
+  backgroundGradientFromOpacity: 0,
+  backgroundGradientTo: "#08130D",
+  backgroundGradientToOpacity: 0.5,
+  color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+  strokeWidth: 2,
+  barPercentage: 0.5,
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f4f4f8',
     padding: 20,
-    backgroundColor: '#F5F5F5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
@@ -109,13 +118,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  chartContainer: {
+    marginVertical: 10,
+  },
   chartTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
-    marginTop: 20,
-    marginBottom: 10,
-    textAlign: 'left',
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
   },
   chart: {
     marginVertical: 8,

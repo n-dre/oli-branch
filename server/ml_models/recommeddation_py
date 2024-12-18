@@ -1,0 +1,52 @@
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
+
+# Example user data (to be replaced by actual user input data)
+user_data = {
+    'revenue': 500000,
+    'debt': 100000,
+    'credit_score': 700,
+    'industry': 'Healthcare',
+    'preference': 'Loan',
+    'location': 'New York'
+}
+
+# Example dataset of products/resources
+data = pd.DataFrame({
+    'product_type': ['Loan', 'Grant', 'Consulting', 'Loan', 'Grant'],
+    'target_industry': ['Healthcare', 'Technology', 'Healthcare', 'Retail', 'Education'],
+    'min_credit_score': [600, None, 650, 500, None],
+    'location': ['New York', 'California', 'New York', 'Texas', 'Florida'],
+    'min_revenue': [0, 200000, 100000, 50000, 150000],
+    'interest_rate': [5.0, None, None, 3.5, None]
+})
+
+# Encoding categorical data, scaling numerical data
+scaler = StandardScaler()
+data[['min_revenue', 'interest_rate']] = scaler.fit_transform(data[['min_revenue', 'interest_rate']].fillna(0))
+
+# Creating a feature vector based on user data
+def create_user_vector(user_data):
+    user_vector = [
+        1 if user_data['preference'] == 'Loan' else 0,  # Loan preference
+        1 if user_data['industry'] == 'Healthcare' else 0,  # Industry matching
+        user_data['credit_score'],
+        user_data['revenue'],
+    ]
+    return np.array(user_vector).reshape(1, -1)
+
+# Nearest Neighbor model for finding recommendations
+model = NearestNeighbors(n_neighbors=2, metric='cosine')
+model.fit(data[['product_type', 'target_industry', 'min_credit_score', 'min_revenue']].values)
+
+# Predict recommendations
+user_vector = create_user_vector(user_data)
+distances, indices = model.kneighbors(user_vector)
+recommended_products = data.iloc[indices[0]]
+
+# Rank recommendations based on custom criteria or user preferences
+ranked_recommendations = recommended_products.sort_values(by='interest_rate', ascending=True)
+print("Recommended Products:")
+print(ranked_recommendations)
