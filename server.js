@@ -10,7 +10,7 @@ const requestLogger = require('./server/middleware/requestLogger');
 const cors = require('cors');
 
 // Environment variables and MongoDB URI
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://contact:y5k01zXkkZRKIZaF@cluster0.kwqwu.mongodb.net/oli-branch?retryWrites=true&w=majority';
+const uri = "mongodb+srv://contact:<db_password>@cluster0.kwqwu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const port = process.env.PORT || 3000;
 
 const app = express();
