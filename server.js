@@ -20,35 +20,27 @@ app.use(express.json());
 app.use(cors());
 app.use(requestLogger);
 
-// MongoDB connection setup
-async function runMongoDB() {
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+async function run() {
   try {
-    const client = new MongoClient(mongoURI, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-      }
-    });
-
+    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    console.log("Connected to MongoDB:", mongoURI);
-
-    const db = client.db('oli-branch');
-    app.get('/users', (req, res) => {
-      db.collection('users').find({}).toArray((err, result) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).send('Error fetching users');
-        }
-        res.json(result);
-      });
-    });
-
-  } catch (err) {
-    console.error('Failed to connect to MongoDB:', err);
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
   }
 }
+run().catch(console.dir);
 
 // Start MongoDB connection
 runMongoDB().catch(console.dir);
