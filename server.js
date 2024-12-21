@@ -2,12 +2,12 @@
 const express = require('express'); 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const path = require('path');
-const { pool, connectPostgres, connectMongoDB } = require('./server/config/db'); // Only import once
-// server.js
+const { pool, connectPostgres } = require('./server/config/db'); // Remove connectMongoDB import
 const authMiddleware = require('./server/middleware/authMiddleware');
 const errorHandler = require('./server/middleware/errorHandler');
 const requestLogger = require('./server/middleware/requestLogger');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 
 // Environment variables and MongoDB URI
 const uri = "mongodb+srv://contact:<db_password>@cluster0.kwqwu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
@@ -28,22 +28,19 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
-async function run() {
+
+// Connect to MongoDB
+async function connectMongoDB() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
+    console.log("Connected to MongoDB successfully.");
+  } catch (err) {
+    console.error("Failed to connect to MongoDB:", err);
   }
 }
-run().catch(console.dir);
 
-// Start MongoDB connection
-runMongoDB().catch(console.dir);
+connectMongoDB(); // Start MongoDB connection
 
 // Define routes
 app.use('/api/protected', authMiddleware);
