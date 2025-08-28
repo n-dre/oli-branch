@@ -1,9 +1,11 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import NearestNeighbors
 import numpy as np
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.neighbors import NearestNeighbors
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 
-# Example user data (to be replaced by actual user input data)
+# Example user data
 user_data = {
     'revenue': 500000,
     'debt': 100000,
@@ -23,30 +25,52 @@ data = pd.DataFrame({
     'interest_rate': [5.0, None, None, 3.5, None]
 })
 
-# Encoding categorical data, scaling numerical data
-scaler = StandardScaler()
-data[['min_revenue', 'interest_rate']] = scaler.fit_transform(data[['min_revenue', 'interest_rate']].fillna(0))
+# Fill missing values
+data['min_credit_score'] = data['min_credit_score'].fillna(0)
+data['interest_rate'] = data['interest_rate'].fillna(0)
 
-# Creating a feature vector based on user data
-def create_user_vector(user_data):
-    user_vector = [
-        1 if user_data['preference'] == 'Loan' else 0,  # Loan preference
-        1 if user_data['industry'] == 'Healthcare' else 0,  # Industry matching
-        user_data['credit_score'],
-        user_data['revenue'],
-    ]
-    return np.array(user_vector).reshape(1, -1)
+# Define feature columns
+categorical_features = ['product_type', 'target_industry', 'location']
+numerical_features = ['min_credit_score', 'min_revenue', 'interest_rate']
 
-# Nearest Neighbor model for finding recommendations
-model = NearestNeighbors(n_neighbors=2, metric='cosine')
-model.fit(data[['product_type', 'target_industry', 'min_credit_score', 'min_revenue']].values)
+# Preprocessor pipeline
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numerical_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    ])
 
-# Predict recommendations
-user_vector = create_user_vector(user_data)
-distances, indices = model.kneighbors(user_vector)
+# KNN pipeline
+knn_pipeline = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('knn', NearestNeighbors(n_neighbors=2, metric='cosine'))
+])
+
+# Fit the model
+knn_pipeline.fit(data)
+
+# Create user DataFrame matching the training structure
+user_df = pd.DataFrame([{
+    'product_type': user_data['preference'],
+    'target_industry': user_data['industry'],
+    'min_credit_score': user_data['credit_score'],
+    'location': user_data['location'],
+    'min_revenue': user_data['revenue'],
+    'interest_rate': 0  # Placeholder; not used if preference-based filtering is done later
+}])
+
+# Transform user input using same preprocessing
+user_vector = knn_pipeline.named_steps['preprocessor'].transform(user_df)
+
+# Get nearest neighbors
+knn = knn_pipeline.named_steps['knn']
+distances, indices = knn.kneighbors(user_vector)
+
+# Retrieve recommendations
 recommended_products = data.iloc[indices[0]]
 
-# Rank recommendations based on custom criteria or user preferences
+# Rank by interest rate (for Loan type), or other criteria
 ranked_recommendations = recommended_products.sort_values(by='interest_rate', ascending=True)
+
 print("Recommended Products:")
-print(ranked_recommendations)
+print(ranked_recommendations[['product_type', 'target_industry', 'location', 'min_revenue', 'interest_rate']])

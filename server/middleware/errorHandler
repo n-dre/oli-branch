@@ -1,11 +1,20 @@
 // server/middleware/errorHandler.js
 
 const errorHandler = (err, req, res, next) => {
-    console.error('Error:', err.stack);
-    res.status(err.status || 500).json({
-      message: err.message || 'Internal Server Error',
-      error: process.env.NODE_ENV === 'development' ? err : {}, // Hide stack trace in production
-    });
-  };
-  
-  module.exports = errorHandler;
+  // Log the error stack trace (conditionally based on environment)
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(`[${new Date().toISOString()}] Unhandled error:\n`, err.stack);
+  }
+
+  // Default status and message
+  const statusCode = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+
+  // Send response
+  res.status(statusCode).json({
+    message,
+    ...(process.env.NODE_ENV === 'development' && { error: err }), // Include full error in dev
+  });
+};
+
+module.exports = errorHandler;

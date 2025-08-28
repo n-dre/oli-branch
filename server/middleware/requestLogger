@@ -1,11 +1,26 @@
-// server/middleware/errorHandler.js
+const HttpError = require('../utils/HttpError'); // Assuming this exists
 
 const errorHandler = (err, req, res, next) => {
-    console.error('Error:', err.stack);
-    res.status(err.status || 500).json({
-      message: err.message || 'Internal Server Error',
-      error: process.env.NODE_ENV === 'development' ? err : {}, // Hide stack trace in production
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(`[${new Date().toISOString()}] Unhandled error:\n`, err.stack);
+  }
+
+  // Handle custom HttpError instances
+  if (err instanceof HttpError) {
+    return res.status(err.status).json({
+      success: false,
+      message: err.message,
+      ...(process.env.NODE_ENV === 'development' && { error: err }),
     });
-  };
-  
-  module.exports = errorHandler;
+  }
+
+  // Fallback for unexpected errors
+  const statusCode = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    ...(process.env.NODE_ENV === 'development' && { error: err }),
+  });
+};

@@ -1,15 +1,58 @@
 // server/models/NearbyProductsModel.js
 const mongoose = require('mongoose');
 
-const NearbyProductsSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  type: { type: String, required: true }, // E.g., "ATM", "Bank Branch", "Financial Advisor"
-  description: { type: String },
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
-  distance: { type: Number }, // Distance from the user's current location
-  contactInfo: { type: String },
-  createdAt: { type: Date, default: Date.now },
-});
+const NearbyProductSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Name is required'],
+      trim: true,
+    },
+    type: {
+      type: String,
+      required: [true, 'Product type is required'],
+      enum: {
+        values: ['ATM', 'Bank Branch', 'Financial Advisor', 'Credit Union', 'Loan Office', 'Other'],
+        message: '{VALUE} is not supported as a product type',
+      },
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+        validate: {
+          validator: function (coords) {
+            const [lng, lat] = coords;
+            return lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
+          },
+          message: 'Coordinates must be [longitude (-180 to 180), latitude (-90 to 90)]'
+        }
+      }
+    },
+    distance: {
+      type: Number,
+      unit: { type: String, default: 'meters' }
+    },
+    contactInfo: {
+      type: String,
+      trim: true,
+    }
+  },
+  {
+    timestamps: true // Adds createdAt and updatedAt
+  }
+);
 
-module.exports = mongoose.model('NearbyProduct', NearbyProductsSchema);
+// Geospatial index for location-based queries
+NearbyProductSchema.index({ location: '2dsphere' });
+
+module.exports = mongoose.model('NearbyProduct', NearbyProductSchema);
