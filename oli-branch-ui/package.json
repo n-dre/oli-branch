@@ -1,10 +1,11 @@
 {
   "name": "oli-branch",
   "version": "1.0.0",
-  "description": "Oli-Branch mobile app using Expo and React Native.",
+  "description": "Oli-Branch mobile app with backend service using Expo, React Native, and Node.js",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "dev": "nodemon server.js",
     "heroku-postbuild": "npm install && npm run build",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -12,7 +13,11 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write .",
     "build": "echo 'No build step necessary'",
-    "test": "jest --config jest.config.js"
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "server": "node server.js",
+    "server:dev": "nodemon server.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
@@ -22,15 +27,20 @@
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "axios": "^1.7.7",
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
     "expo": "~51.0.28",
     "expo-location": "~17.0.1",
     "expo-status-bar": "~1.12.1",
     "express": "^4.21.1",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.10.0",
+    "mongoose": "^8.0.3",
     "pg": "^8.13.0",
     "react": "^18.2.0",
     "react-dom": "18.2.0",
@@ -50,11 +60,12 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.26.0",
+    "@types/jest": "^29.5.8",
     "babel-cli": "^6.26.0",
     "babel-jest": "^29.7.0",
-    "dotenv": "^16.4.5",
     "eslint": "^8.14.0",
     "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
     "prettier": "^2.5.1",
     "supertest": "^7.0.0"
   },
@@ -64,12 +75,23 @@
   },
   "private": true,
   "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "server/**/*.js",
+      "!server/server.js",
+      "!**/node_modules/**"
+    ],
     "moduleDirectories": [
       "node_modules",
       "<rootDir>/"
     ],
     "modulePaths": [
       "<rootDir>"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/?(*.)+(spec|test).js"
     ]
   }
 }
